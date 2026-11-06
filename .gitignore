@@ -1,2 +1,11 @@
 desktop.ini
 venv/
+*.pth
+*.pt
+*.onnx
+*.joblib
+*.mat
+.env
+__pycache__/
+.cache/
+data/
