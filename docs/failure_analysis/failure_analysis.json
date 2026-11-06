@@ -1,0 +1,108 @@
+{
+  "n_test": 8041,
+  "n_errors": 429,
+  "top1": 0.9466484268125855,
+  "error_types": {
+    "same_model_different_year": 39,
+    "same_make_different_model": 264,
+    "different_make": 126,
+    "true_class_still_in_top5": 375
+  },
+  "top10_confused_pairs": [
+    {
+      "true": "Audi TTS Coupe 2012",
+      "pred": "Audi TT Hatchback 2011",
+      "count": 16
+    },
+    {
+      "true": "Audi V8 Sedan 1994",
+      "pred": "Audi 100 Sedan 1994",
+      "count": 12
+    },
+    {
+      "true": "Dodge Sprinter Cargo Van 2009",
+      "pred": "Mercedes-Benz Sprinter Van 2012",
+      "count": 12
+    },
+    {
+      "true": "Audi S5 Coupe 2012",
+      "pred": "Audi A5 Coupe 2012",
+      "count": 11
+    },
+    {
+      "true": "Chevrolet Express Van 2007",
+      "pred": "Chevrolet Express Cargo Van 2007",
+      "count": 11
+    },
+    {
+      "true": "Dodge Caliber Wagon 2012",
+      "pred": "Dodge Caliber Wagon 2007",
+      "count": 9
+    },
+    {
+      "true": "Dodge Caliber Wagon 2007",
+      "pred": "Dodge Caliber Wagon 2012",
+      "count": 9
+    },
+    {
+      "true": "BMW 6 Series Convertible 2007",
+      "pred": "BMW M6 Convertible 2010",
+      "count": 8
+    },
+    {
+      "true": "Bentley Continental GT Coupe 2012",
+      "pred": "Bentley Continental GT Coupe 2007",
+      "count": 8
+    },
+    {
+      "true": "GMC Savana Van 2012",
+      "pred": "Chevrolet Express Van 2007",
+      "count": 8
+    }
+  ],
+  "worst10_classes": [
+    {
+      "class": "Chevrolet Express Van 2007",
+      "accuracy": 0.486
+    },
+    {
+      "class": "Audi TTS Coupe 2012",
+      "accuracy": 0.619
+    },
+    {
+      "class": "Audi S5 Coupe 2012",
+      "accuracy": 0.69
+    },
+    {
+      "class": "Dodge Sprinter Cargo Van 2009",
+      "accuracy": 0.692
+    },
+    {
+      "class": "Audi V8 Sedan 1994",
+      "accuracy": 0.698
+    },
+    {
+      "class": "Chevrolet Express Cargo Van 2007",
+      "accuracy": 0.724
+    },
+    {
+      "class": "Audi TT Hatchback 2011",
+      "accuracy": 0.725
+    },
+    {
+      "class": "Chevrolet Silverado 2500HD Regular Cab 2012",
+      "accuracy": 0.737
+    },
+    {
+      "class": "Bentley Continental GT Coupe 2012",
+      "accuracy": 0.765
+    },
+    {
+      "class": "Dodge Caliber Wagon 2012",
+      "accuracy": 0.775
+    }
+  ],
+  "mean_conf_correct": 0.7582088018917499,
+  "mean_conf_wrong": 0.46199090909090906,
+  "confident_mistakes_conf>=0.7": 104
+}
