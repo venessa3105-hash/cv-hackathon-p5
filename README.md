@@ -38,7 +38,9 @@ confidence-threshold analysis and ablations are in [`eval_P5_T07.md`](eval_P5_T0
    - intermediate steps: CLAHE, Canny edges, contours/ROI, the classifier crop and gradients
 
 Predictions below the confidence threshold (default 0.5) are shown as **Uncertain**.
+## Training and deployment
 
+![Training and deployment flow](docs/deployment.png)
 ## Repository structure
 
 ```
