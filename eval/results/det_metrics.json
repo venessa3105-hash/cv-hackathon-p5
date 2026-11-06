@@ -1,0 +1,12 @@
+{
+  "detector": "yolo11n fine-tuned (1 class)",
+  "test_mAP50": 0.995,
+  "test_mAP50_95": 0.941,
+  "test_mean_IoU": 0.9538978679944423,
+  "test_IoU>=0.5_rate": 0.9981345603780625,
+  "zero_shot_coco_mean_IoU": 0.8681270434155542,
+  "zero_shot_coco_IoU>=0.5_rate": 0.9118268872030842,
+  "model_size_MB": 5.5,
+  "params": 2597051,
+  "gpu_inference_ms": 3.3
+}
