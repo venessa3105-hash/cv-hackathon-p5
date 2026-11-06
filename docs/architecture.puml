@@ -1,0 +1,48 @@
+@startuml
+title P5 - Fine-Grained Vehicle Recognition: Inference Architecture
+skinparam defaultFontName Arial
+skinparam ActivityBorderColor #555555
+skinparam ArrowColor #333333
+
+start
+:Input image (user upload);
+:Resize longest side to max 1280 px;
+
+fork
+  partition #DDEBF7 "Classical only (16.3% Top-1)" {
+    :CLAHE on LAB L-channel;
+    :Gaussian blur + Canny edges;
+    :Dilate / close + contours\nlargest contour = vehicle ROI;
+    :Crop ROI, resize to 128x128;
+    :Features: HOG + LBP texture +\nHSV colour histogram + geometric (Hu moments);
+    :StandardScaler -> PCA(256) -> Linear SVM;
+  }
+fork again
+  partition #E2F0D9 "Hybrid - main pipeline" {
+    :YOLO11n detector\n(fine-tuned, 5.5 MB, mAP@0.5 = 0.995);
+    if (Vehicle detected?) then (yes)
+      :Up to 5 detected vehicles;
+    else (no)
+      :Fallback: classical\nedge/contour ROI;
+    endif
+    :Padded crop (+8% margin);
+    if (Mean luminance L < 80?) then (dark)
+      :Adaptive CLAHE enhancement;
+    else (normal)
+    endif
+    :ConvNeXt-Tiny @ 384 px\n+ horizontal-flip TTA\n(196 classes, 94.7% Top-1 on GT crops);
+    if (Confidence >= threshold (0.5)?) then (yes)
+      :Make / Model / Year\n+ confidence score;
+    else (no)
+      :Label 'Uncertain'\n+ show top-5 candidates;
+    endif
+  }
+fork again
+  partition #FCE4D6 "Deep learning only" {
+    :ConvNeXt-Tiny on full image\n(no detection, no preprocessing);
+  }
+end fork
+
+:Gradio UI\n- bounding boxes with labels\n- top-5 + confidence\n- classical vs DL vs hybrid table + latency\n- intermediate steps (CLAHE, edges, contours, ROI, HOG);
+stop
+@enduml
