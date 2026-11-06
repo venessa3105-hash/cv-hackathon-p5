@@ -1,0 +1,8 @@
+{
+  "model": "convnext_tiny.fb_in22k_ft_in1k",
+  "img_size": 384,
+  "val_top1_best": 0.9398772716522217,
+  "test_top1": 0.9466484189033508,
+  "test_top5": 0.9932844042778015,
+  "n_test": 8041
+}

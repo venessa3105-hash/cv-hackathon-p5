@@ -1,0 +1,66 @@
+{
+  "method": "CLAHE + HOG + LBP + HSV hist + geometric -> PCA(256) -> LinearSVC",
+  "C": 0.01,
+  "ablation": {
+    "hog_only": {
+      "features": [
+        "hog"
+      ],
+      "dim": 1764,
+      "val_top1": 0.15828220858895706,
+      "test_top1": 0.13953488372093023,
+      "test_top5": 0.3151349334659868
+    },
+    "lbp_only": {
+      "features": [
+        "lbp"
+      ],
+      "dim": 40,
+      "val_top1": 0.02822085889570552,
+      "test_top1": 0.030220121875388632,
+      "test_top5": 0.09973883845292875
+    },
+    "color_only": {
+      "features": [
+        "color"
+      ],
+      "dim": 256,
+      "val_top1": 0.03803680981595092,
+      "test_top1": 0.04700907847282676,
+      "test_top5": 0.12697425693321726
+    },
+    "geom_only": {
+      "features": [
+        "geom"
+      ],
+      "dim": 12,
+      "val_top1": 0.015950920245398775,
+      "test_top1": 0.01654023131451312,
+      "test_top5": 0.057828628280064666
+    },
+    "all_minus_color": {
+      "features": [
+        "hog",
+        "lbp",
+        "geom"
+      ],
+      "dim": 1816,
+      "val_top1": 0.1570552147239264,
+      "test_top1": 0.14214649919164282,
+      "test_top5": 0.31836836214401193
+    },
+    "all": {
+      "features": [
+        "hog",
+        "lbp",
+        "color",
+        "geom"
+      ],
+      "dim": 2072,
+      "val_top1": 0.1754601226993865,
+      "test_top1": 0.1629150603158811,
+      "test_top5": 0.3574182315632384
+    }
+  },
+  "latency_ms_per_image_cpu": 25.0
+}

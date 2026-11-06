@@ -1,0 +1,19 @@
+# Packages for the training and evaluation scripts (Kaggle already has most of these)
+torch
+torchvision
+timm
+ultralytics
+scipy
+scikit-learn
+scikit-image
+opencv-python-headless
+numpy
+pandas
+pillow
+joblib
+matplotlib
+psutil
+huggingface_hub
+onnx
+onnxruntime
+onnxslim

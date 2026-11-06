@@ -1,0 +1,32 @@
+{
+  "params_millions": 27.97,
+  "n_eval_images": 500,
+  "input_size": 384,
+  "torch_fp32_gpu": {
+    "top1": 0.96,
+    "latency_ms_batch1": 13.89,
+    "size_MB": 111.9,
+    "peak_gpu_mem_MB": 1593.3
+  },
+  "torch_fp16_gpu": {
+    "top1": 0.96,
+    "latency_ms_batch1": 11.37,
+    "size_MB": 55.9,
+    "peak_gpu_mem_MB": 888.7
+  },
+  "torch_fp32_cpu": {
+    "latency_ms_batch1": 291.4
+  },
+  "onnx_fp32_cpu": {
+    "top1": 0.96,
+    "latency_ms_batch1": 145.1,
+    "size_MB": 112.0,
+    "session_memory_MB": 1422.1
+  },
+  "onnx_int8_cpu": {
+    "top1": 0.96,
+    "latency_ms_batch1": 705.0,
+    "size_MB": 28.4,
+    "session_memory_MB": 1224.7
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "detector": "YOLO11n fine-tuned",
+  "n_test": 8041,
+  "detector_miss_rate": 0.0004974505658500186,
+  "pipeline_ablation": {
+    "A_dl_only_full_image": {
+      "top1": 0.9191642830493719,
+      "top5": 0.9853252083074244
+    },
+    "B_det_crop": {
+      "top1": 0.9445342619077229,
+      "top5": 0.9929113294366372
+    },
+    "C_det_crop_padded": {
+      "top1": 0.947021514736973,
+      "top5": 0.9929113294366372
+    },
+    "D_det_crop_padded_tta": {
+      "top1": 0.9471458773784355,
+      "top5": 0.9929113294366372
+    },
+    "E_hybrid_full_adaptiveCLAHE": {
+      "top1": 0.9471458773784355,
+      "top5": 0.9927869667951748
+    }
+  },
+  "confidence_thresholds": {
+    "0.3": {
+      "coverage": 0.9495087675662232,
+      "accuracy_on_accepted": 0.962278978388998,
+      "error_rate_on_rejected_would_be": 0.3374384236453202
+    },
+    "0.5": {
+      "coverage": 0.8732744683497078,
+      "accuracy_on_accepted": 0.9740814582739961,
+      "error_rate_on_rejected_would_be": 0.23846908734052996
+    },
+    "0.7": {
+      "coverage": 0.7221738589727645,
+      "accuracy_on_accepted": 0.9814017565007749,
+      "error_rate_on_rejected_would_be": 0.14189794091316021
+    },
+    "0.9": {
+      "coverage": 0.11043402561870413,
+      "accuracy_on_accepted": 0.9853603603603603,
+      "error_rate_on_rejected_would_be": 0.05759821054103176
+    }
+  },
+  "robustness_top1": {
+    "normal": {
+      "A_dl_only_full_image": 0.9115,
+      "D_det_crop_padded_tta": 0.944,
+      "E_hybrid_full_adaptiveCLAHE": 0.944
+    },
+    "low_light": {
+      "A_dl_only_full_image": 0.891,
+      "D_det_crop_padded_tta": 0.927,
+      "E_hybrid_full_adaptiveCLAHE": 0.931
+    },
+    "blur": {
+      "A_dl_only_full_image": 0.6915,
+      "D_det_crop_padded_tta": 0.7495,
+      "E_hybrid_full_adaptiveCLAHE": 0.749
+    },
+    "low_resolution": {
+      "A_dl_only_full_image": 0.557,
+      "D_det_crop_padded_tta": 0.59,
+      "E_hybrid_full_adaptiveCLAHE": 0.5905
+    },
+    "noise": {
+      "A_dl_only_full_image": 0.8825,
+      "D_det_crop_padded_tta": 0.926,
+      "E_hybrid_full_adaptiveCLAHE": 0.925
+    },
+    "occlusion_30pct": {
+      "A_dl_only_full_image": 0.8235,
+      "D_det_crop_padded_tta": 0.9,
+      "E_hybrid_full_adaptiveCLAHE": 0.899
+    }
+  },
+  "robustness_n": 2000
+}
