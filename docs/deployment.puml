@@ -15,7 +15,8 @@ package "Kaggle GPU notebooks" {
 
 cloud "Hugging Face Hub\nmodel repo\n(vene-05/p5-convnext-cars)" as HF
 folder "GitHub repo\n(code + docs + eval)" as GH
-node "App host\nGradio app.py" as APP
+node "Live app: HF Static Space\nvene-05/p5-vehicle-recognition\nindex.html (ONNX Runtime Web + OpenCV.js)" as APP
+node "Local / Docker\nGradio app.py" as LOCAL
 actor "User / Judge" as U
 
 DS --> C
@@ -25,8 +26,10 @@ DS --> E
 C --> HF : best_model.pth\nconfig.json
 D --> HF : det_best.pt
 K --> HF : classical_model.joblib
-E --> HF : metrics JSON\ncars_int8.onnx
-HF --> APP : downloads weights\nat startup
-GH --> APP : app code
-U --> APP : uploads car photo
+E --> HF : metrics JSON\ncars_int8.onnx\n(+ det_best.onnx, cars_fp32.onnx)
+HF --> APP : ONNX models fetched\nby the browser
+HF --> LOCAL : PyTorch weights\nat startup
+GH --> APP : web/index.html
+GH --> LOCAL : app/
+U --> APP : uploads car photo\n(image never leaves device)
 @enduml

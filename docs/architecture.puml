@@ -43,6 +43,6 @@ fork again
   }
 end fork
 
-:Gradio UI\n- bounding boxes with labels\n- top-5 + confidence\n- classical vs DL vs hybrid table + latency\n- intermediate steps (CLAHE, edges, contours, ROI, HOG);
+:User interface\n- Live: browser app (ONNX Runtime Web + OpenCV.js, HF Static Space)\n- Local/Docker: Gradio app.py (adds live classical SVM)\n- bounding boxes, make/model/year + confidence, top-5\n- classical vs DL vs hybrid table + latency\n- intermediate steps (CLAHE, edges, contours, ROI, gradients/HOG);
 stop
 @enduml

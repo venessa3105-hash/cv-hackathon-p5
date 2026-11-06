@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vehicle Recognition</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --panel: #ffffff; --ink: #1b1f24; --muted: #5d6673; --line: #dfe3e8;
+    --accent: #1f6feb; --ok: #1a7f37; --warn: #b35900; --bad: #c62828;
+    --classical: #dbeaf7; --hybrid: #e2f0d9; --dl: #fce4d6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1216; --panel: #171b21; --ink: #e8ebef; --muted: #9aa4b1; --line: #2a3039;
+      --accent: #58a6ff; --ok: #3fb950; --warn: #e3a23a; --bad: #f47067;
+      --classical: #1d2b3a; --hybrid: #1f2e1e; --dl: #3a2a20;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1216; --panel: #171b21; --ink: #e8ebef; --muted: #9aa4b1; --line: #2a3039;
+    --accent: #58a6ff; --ok: #3fb950; --warn: #e3a23a; --bad: #f47067;
+    --classical: #1d2b3a; --hybrid: #1f2e1e; --dl: #3a2a20;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { padding: 20px 16px 8px; max-width: 1180px; margin: 0 auto; }
+  h1 { font-size: 1.45rem; margin: 0 0 4px; }
+  header p { margin: 0; color: var(--muted); }
+  nav { max-width: 1180px; margin: 12px auto 0; padding: 0 16px; display: flex; gap: 4px; border-bottom: 1px solid var(--line); }
+  nav button { background: none; border: 0; color: var(--muted); padding: 10px 14px; font: inherit; cursor: pointer;
+               border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  nav button.active { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+  main { max-width: 1180px; margin: 0 auto; padding: 16px; }
+  .tab { display: none; } .tab.active { display: block; }
+  .grid { display: grid; grid-template-columns: 340px 1fr; gap: 16px; align-items: start; }
+  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+  .panel h2 { font-size: 1rem; margin: 0 0 12px; }
+  label { display: block; margin: 10px 0 4px; font-weight: 600; font-size: .9rem; }
+  .hint { color: var(--muted); font-size: .82rem; margin: 2px 0 0; }
+  select, input[type=range] { width: 100%; }
+  select { padding: 6px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font: inherit; }
+  .check { display: flex; gap: 8px; align-items: center; font-weight: 400; }
+  #drop { border: 2px dashed var(--line); border-radius: 10px; padding: 18px; text-align: center; cursor: pointer; color: var(--muted); }
+  #drop.over { border-color: var(--accent); color: var(--ink); }
+  #drop img { max-width: 100%; max-height: 180px; border-radius: 6px; display: block; margin: 0 auto 8px; }
+  #go { width: 100%; margin-top: 14px; padding: 11px; border: 0; border-radius: 8px; background: var(--accent);
+        color: #fff; font: 600 1rem system-ui, sans-serif; cursor: pointer; }
+  #go:disabled { opacity: .5; cursor: not-allowed; }
+  #status { margin-top: 10px; font-size: .88rem; min-height: 1.3em; }
+  #status.err { color: var(--bad); } #status.ok { color: var(--ok); }
+  .bar { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; margin-top: 6px; display: none; }
+  .bar > div { height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+  canvas.result { width: 100%; height: auto; border-radius: 8px; background: var(--line); display: block; }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: .82rem; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .tag { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: .78rem; font-weight: 600; }
+  .tag.ok { background: color-mix(in srgb, var(--ok) 18%, transparent); color: var(--ok); }
+  .tag.warn { background: color-mix(in srgb, var(--warn) 18%, transparent); color: var(--warn); }
+  .top5 div { margin: 6px 0; font-size: .86rem; }
+  .top5 .track { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; margin-top: 3px; }
+  .top5 .fill { height: 100%; background: var(--accent); }
+  .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
+  .gallery figure { margin: 0; } .gallery canvas { width: 100%; height: auto; border-radius: 6px; background: var(--line); }
+  .gallery figcaption { font-size: .8rem; color: var(--muted); margin-top: 4px; }
+  .row-classical { background: var(--classical); } .row-dl { background: var(--dl); } .row-hybrid { background: var(--hybrid); }
+  .stack > * + * { margin-top: 16px; }
+  .empty { color: var(--muted); text-align: center; padding: 40px 10px; }
+  .scroll { overflow-x: auto; }
+  code { font-size: .85em; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Fine-Grained Vehicle Recognition</h1>
+  <p>Detects each car and predicts its make, model and year across 196 Stanford Cars classes. Everything runs in your browser.</p>
+</header>
+<nav>
+  <button class="active" data-tab="recognize">Recognize</button>
+  <button data-tab="evaluation">Evaluation</button>
+  <button data-tab="about">About</button>
+</nav>
+
+<main>
+<!-- ============================== RECOGNIZE ============================== -->
+<section id="recognize" class="tab active">
+  <div class="grid">
+    <div class="panel">
+      <h2>Input</h2>
+      <div id="drop" tabindex="0">
+        <div id="dropText">Tap or drop a car photo here<br><span class="hint">JPG, PNG or WebP</span></div>
+      </div>
+      <input id="file" type="file" accept="image/*" hidden>
+
+      <label for="variant">Classifier model</label>
+      <select id="variant">
+        <option value="fp32">FP32 ONNX · 112 MB · fastest on laptops</option>
+        <option value="int8">INT8 quantized · 28 MB · smallest download</option>
+      </select>
+      <p class="hint">Downloaded once, then cached by your browser.</p>
+
+      <label class="check"><input type="checkbox" id="clahe" checked> Adaptive low-light enhancement (CLAHE)</label>
+      <label class="check"><input type="checkbox" id="tta"> Flip test-time augmentation (slower)</label>
+      <label class="check"><input type="checkbox" id="dlonly" checked> Also run deep-learning-only for comparison</label>
+
+      <label for="thr">Confidence threshold: <span id="thrVal">0.50</span></label>
+      <input id="thr" type="range" min="0.1" max="0.9" step="0.05" value="0.5">
+
+      <button id="go" disabled>Loading models…</button>
+      <div id="status"></div>
+      <div class="bar" id="bar"><div></div></div>
+    </div>
+
+    <div class="stack">
+      <div class="panel">
+        <h2>Detections</h2>
+        <div id="resultEmpty" class="empty">Results will appear here.</div>
+        <canvas id="resultCanvas" class="result" hidden></canvas>
+      </div>
+      <div class="panel" id="detPanel" hidden>
+        <div class="scroll"><table id="detTable"></table></div>
+        <p class="hint" id="detNote"></p>
+      </div>
+      <div class="panel" id="top5Panel" hidden>
+        <h2>Top-5 candidates (main car)</h2>
+        <div class="top5" id="top5"></div>
+      </div>
+      <div class="panel" id="cmpPanel" hidden>
+        <h2>Classical vs deep learning vs hybrid</h2>
+        <div class="scroll"><table id="cmpTable"></table></div>
+        <p class="hint">Classical row: the classical pipeline's steps run live below. Its SVM accuracy comes from the 8,041-image test-set evaluation.</p>
+      </div>
+      <div class="panel" id="timePanel" hidden>
+        <h2>Latency on this device</h2>
+        <div class="scroll"><table id="timeTable"></table></div>
+      </div>
+      <div class="panel" id="galPanel" hidden>
+        <h2>Intermediate image-processing steps</h2>
+        <div class="gallery" id="gallery"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== EVALUATION ============================== -->
+<section id="evaluation" class="tab">
+  <div class="stack">
+    <div class="panel"><h2>Classification on the official test set (8,041 unseen images)</h2>
+      <div class="scroll"><table>
+        <tr><th>Approach</th><th class="num">Top-1</th><th class="num">Top-5</th></tr>
+        <tr class="row-classical"><td>Classical: CLAHE → HOG + LBP + HSV colour + geometric → PCA → Linear SVM</td><td class="num">16.29%</td><td class="num">35.74%</td></tr>
+        <tr class="row-dl"><td>Deep learning only: ConvNeXt-Tiny on the full image</td><td class="num">91.92%</td><td class="num">98.53%</td></tr>
+        <tr class="row-hybrid"><td><b>Hybrid: YOLO11n → padded ROI → adaptive CLAHE → ConvNeXt-Tiny + TTA</b></td><td class="num"><b>94.71%</b></td><td class="num"><b>99.28%</b></td></tr>
+      </table></div></div>
+
+    <div class="panel"><h2>Detection</h2>
+      <div class="scroll"><table>
+        <tr><th>Metric</th><th class="num">Fine-tuned YOLO11n</th><th class="num">COCO zero-shot</th></tr>
+        <tr><td>mAP@0.5</td><td class="num">0.995</td><td class="num">–</td></tr>
+        <tr><td>mAP@0.5:0.95</td><td class="num">0.941</td><td class="num">–</td></tr>
+        <tr><td>Mean IoU</td><td class="num" id="iouFt">loading…</td><td class="num" id="iouZs">loading…</td></tr>
+        <tr><td>IoU ≥ 0.5 rate</td><td class="num" id="iou5Ft">loading…</td><td class="num" id="iou5Zs">loading…</td></tr>
+      </table></div></div>
+
+    <div class="panel"><h2>Hybrid pipeline ablation (Top-1)</h2>
+      <div class="scroll"><table>
+        <tr><th>Configuration</th><th class="num">Top-1</th><th class="num">Δ</th></tr>
+        <tr><td>A. ConvNeXt on full image</td><td class="num">91.92%</td><td class="num">–</td></tr>
+        <tr><td>B. + YOLO detection crop</td><td class="num">94.45%</td><td class="num">+2.53</td></tr>
+        <tr><td>C. + 8% box padding</td><td class="num">94.70%</td><td class="num">+0.25</td></tr>
+        <tr><td>D. + flip TTA</td><td class="num">94.71%</td><td class="num">+0.01</td></tr>
+        <tr><td>E. + adaptive CLAHE (final)</td><td class="num">94.71%</td><td class="num">+0.40 in low light</td></tr>
+      </table></div></div>
+
+    <div class="panel"><h2>Robustness (Top-1 on 2,000 degraded test images)</h2>
+      <div class="scroll"><table>
+        <tr><th>Condition</th><th class="num">DL only</th><th class="num">Hybrid</th></tr>
+        <tr><td>Normal</td><td class="num">91.15%</td><td class="num">94.40%</td></tr>
+        <tr><td>Low light</td><td class="num">89.10%</td><td class="num">93.10%</td></tr>
+        <tr><td>Blur</td><td class="num">69.15%</td><td class="num">74.90%</td></tr>
+        <tr><td>Low resolution</td><td class="num">55.70%</td><td class="num">59.05%</td></tr>
+        <tr><td>Noise</td><td class="num">88.25%</td><td class="num">92.50%</td></tr>
+        <tr><td>30% occlusion</td><td class="num">82.35%</td><td class="num">89.90%</td></tr>
+      </table></div></div>
+
+    <div class="panel"><h2>Confidence threshold</h2>
+      <div class="scroll"><table>
+        <tr><th>Threshold</th><th class="num">Accepted</th><th class="num">Accuracy on accepted</th></tr>
+        <tr><td>0.3</td><td class="num">94.95%</td><td class="num">96.23%</td></tr>
+        <tr><td><b>0.5 (default)</b></td><td class="num"><b>87.33%</b></td><td class="num"><b>97.41%</b></td></tr>
+        <tr><td>0.7</td><td class="num">72.22%</td><td class="num">98.14%</td></tr>
+        <tr><td>0.9</td><td class="num">11.04%</td><td class="num">98.54%</td></tr>
+      </table></div></div>
+
+    <div class="panel"><h2>Model optimization (classifier, 500 test crops)</h2>
+      <div class="scroll"><table>
+        <tr><th>Variant</th><th class="num">Top-1</th><th class="num">Size</th><th class="num">Latency</th></tr>
+        <tr><td>PyTorch FP32 (GPU)</td><td class="num">96.0%</td><td class="num">111.9 MB</td><td class="num">13.9 ms</td></tr>
+        <tr><td>PyTorch FP16 (GPU)</td><td class="num">96.0%</td><td class="num">55.9 MB</td><td class="num">11.4 ms</td></tr>
+        <tr><td>PyTorch FP32 (CPU)</td><td class="num">–</td><td class="num">111.9 MB</td><td class="num">291 ms</td></tr>
+        <tr><td>ONNX FP32 (CPU)</td><td class="num">96.0%</td><td class="num">112.0 MB</td><td class="num">145 ms</td></tr>
+        <tr><td>ONNX INT8 dynamic (CPU)</td><td class="num">96.0%</td><td class="num">28.4 MB</td><td class="num">705 ms</td></tr>
+      </table></div>
+      <p class="hint">INT8 is 3.9× smaller with no accuracy loss but slower on CPU, because dynamic quantization adds overhead around ConvNeXt's layers. FP32 ONNX gives the best CPU latency.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== ABOUT ============================== -->
+<section id="about" class="tab">
+  <div class="panel stack">
+    <div><h2>How it works</h2>
+      <p>The image is processed by three pipelines. <b>Hybrid</b> (the main one): a fine-tuned YOLO11n detector finds each car. If it finds none, a classical edge and contour region proposal takes over. Each crop gets 8% padding and, if it is dark, CLAHE contrast enhancement. A ConvNeXt-Tiny fine-tuned on Stanford Cars then predicts the class, and predictions below the confidence threshold are shown as <i>Uncertain</i> with the top-5 candidates. <b>Deep learning only</b> classifies the whole image without detection. <b>Classical</b> runs CLAHE, Canny edges, contours and gradient features in the browser; its HOG + LBP + colour + geometric SVM was evaluated offline.</p></div>
+    <div><h2>Limitations</h2>
+      <p>Only the 196 Stanford Cars classes are known, mostly US-market cars up to 2012. Any other car is mapped to the closest known class, which is why low-confidence predictions are flagged. Model years with near-identical styling, very low resolution and heavy blur are the hardest cases. No number-plate recognition or tracking is performed.</p></div>
+    <div><h2>Privacy</h2>
+      <p>Your image never leaves your device. All models run locally in the browser through ONNX Runtime Web and OpenCV.js.</p></div>
+  </div>
+</section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.min.js"></script>
+<script>
+"use strict";
+const REPO = "https://huggingface.co/vene-05/p5-convnext-cars/resolve/main/";
+const URLS = { config: REPO + "config.json", det: REPO + "det_best.onnx",
+               fp32: REPO + "cars_fp32.onnx", int8: REPO + "cars_int8.onnx", detMetrics: REPO + "det_metrics.json" };
+const OPENCV_URLS = [
+  "https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.10.0-release.1/dist/opencv.js",
+  "https://unpkg.com/@techstark/opencv-js@4.10.0-release.1/dist/opencv.js",
+  "https://docs.opencv.org/4.10.0/opencv.js",
+];
+const DET_SIZE = 640, DET_CONF = 0.25, NMS_IOU = 0.45, MAX_CARS = 5, PAD = 0.08, DARK = 80, MAX_SIDE = 1280;
+const MULTI_WORD_MAKES = ["AM General", "Aston Martin", "Land Rover"];
+
+ort.env.wasm.wasmPaths = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/";
+ort.env.wasm.numThreads = self.crossOriginIsolated ? Math.min(4, navigator.hardwareConcurrency || 1) : 1;
+
+const $ = id => document.getElementById(id);
+const state = { cfg: null, det: null, cls: {}, clsVariant: null, img: null, cvReady: false, busy: false };
+
+// ------------------------------------------------------------------ UI helpers
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
+  document.querySelectorAll("nav button").forEach(x => x.classList.toggle("active", x === b));
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.id === b.dataset.tab));
+});
+function setStatus(msg, kind = "") { const s = $("status"); s.textContent = msg; s.className = kind; }
+function setProgress(frac) {
+  const bar = $("bar");
+  if (frac === null) { bar.style.display = "none"; return; }
+  bar.style.display = "block"; bar.firstElementChild.style.width = Math.round(frac * 100) + "%";
+}
+function fmtMs(ms) { return ms >= 1000 ? (ms / 1000).toFixed(2) + " s" : Math.round(ms) + " ms"; }
+function pct(x) { return (x * 100).toFixed(1) + "%"; }
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+$("thr").oninput = () => { $("thrVal").textContent = (+$("thr").value).toFixed(2); };
+const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.deviceMemory && navigator.deviceMemory <= 4);
+$("variant").value = isMobile ? "int8" : "fp32";
+
+// ------------------------------------------------------------------ loading
+async function fetchCached(url, label) {
+  let cache = null;
+  try { cache = await caches.open("p5-models-v1"); const hit = await cache.match(url); if (hit) return await hit.arrayBuffer(); }
+  catch (e) { cache = null; }
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`${label}: HTTP ${res.status}`);
+  const total = +res.headers.get("content-length") || 0;
+  let buf;
+  if (res.body && res.body.getReader) {
+    const reader = res.body.getReader(); const chunks = []; let got = 0;
+    for (;;) {
+      const { done, value } = await reader.read(); if (done) break;
+      chunks.push(value); got += value.length;
+      setStatus(`Downloading ${label}… ${(got / 1e6).toFixed(1)} MB` + (total ? ` of ${(total / 1e6).toFixed(0)} MB` : ""));
+      if (total) setProgress(got / total);
+    }
+    buf = new Uint8Array(got); let off = 0; for (const c of chunks) { buf.set(c, off); off += c.length; }
+    buf = buf.buffer;
+  } else { buf = await res.arrayBuffer(); }
+  setProgress(null);
+  try { if (cache) await cache.put(url, new Response(buf.slice(0))); } catch (e) { /* storage full or blocked */ }
+  return buf;
+}
+function loadScript(src) {
+  return new Promise((ok, fail) => { const s = document.createElement("script"); s.src = src; s.async = true;
+    s.onload = ok; s.onerror = () => fail(new Error("Could not load " + src)); document.head.appendChild(s); });
+}
+async function loadOpenCV() {
+  let lastErr = null;
+  for (const url of OPENCV_URLS) {
+    try {
+      await loadScript(url);
+      if (typeof cv === "undefined") throw new Error("OpenCV.js did not define cv");
+      if (cv instanceof Promise) { window.cv = await cv; }
+      else if (!cv.Mat) {
+        await new Promise((res, rej) => { cv.onRuntimeInitialized = res; setTimeout(() => rej(new Error("OpenCV init timeout")), 60000); });
+      }
+      if (!cv.Mat) throw new Error("OpenCV.js not initialised");
+      state.cvReady = true; return;
+    } catch (e) { lastErr = e; console.warn("OpenCV load failed from", url, e); }
+  }
+  throw lastErr || new Error("OpenCV.js unavailable");
+}
+const sessOpts = { executionProviders: ["wasm"], graphOptimizationLevel: "all" };
+async function ensureClassifier(variant) {
+  if (!state.cls[variant]) {
+    const buf = await fetchCached(URLS[variant], variant === "int8" ? "INT8 classifier" : "FP32 classifier");
+    setStatus("Initialising classifier…");
+    state.cls[variant] = await ort.InferenceSession.create(buf, sessOpts);
+  }
+  state.clsVariant = variant;
+  return state.cls[variant];
+}
+async function init() {
+  try {
+    $("go").disabled = true;
+    setStatus("Loading configuration…");
+    state.cfg = JSON.parse(new TextDecoder().decode(await fetchCached(URLS.config, "config")));
+    const cvPromise = loadOpenCV().catch(e => { console.warn(e); return e; });
+    const detBuf = await fetchCached(URLS.det, "detector");
+    state.det = await ort.InferenceSession.create(detBuf, sessOpts);
+    await ensureClassifier($("variant").value);
+    setStatus("Loading OpenCV…"); await cvPromise;
+    setStatus(state.cvReady ? "Ready. Upload a car photo."
+      : "Ready (classical OpenCV steps unavailable on this network; detection and classification work). Upload a car photo.", "ok");
+    $("go").textContent = "Recognize"; $("go").disabled = !state.img;
+  } catch (e) {
+    console.error(e);
+    setStatus("Could not load the models: " + e.message + ". Check your connection and reload the page.", "err");
+    $("go").textContent = "Unavailable";
+  }
+  loadEvalMetrics();
+}
+$("variant").onchange = async () => {
+  if (state.busy) return;
+  $("go").disabled = true;
+  try { await ensureClassifier($("variant").value); setStatus("Classifier switched.", "ok"); }
+  catch (e) { setStatus("Could not load that model: " + e.message, "err"); }
+  $("go").disabled = !state.img || !state.det;
+};
+async function loadEvalMetrics() {
+  try {
+    const m = await (await fetch(URLS.detMetrics)).json();
+    $("iouFt").textContent = pct(m.test_mean_IoU); $("iouZs").textContent = pct(m.zero_shot_coco_mean_IoU);
+    $("iou5Ft").textContent = pct(m["test_IoU>=0.5_rate"]); $("iou5Zs").textContent = pct(m["zero_shot_coco_IoU>=0.5_rate"]);
+  } catch (e) { ["iouFt", "iouZs", "iou5Ft", "iou5Zs"].forEach(id => $(id).textContent = "n/a"); }
+}
+
+// ------------------------------------------------------------------ image input
+const drop = $("drop");
+drop.onclick = () => $("file").click();
+drop.onkeydown = e => { if (e.key === "Enter" || e.key === " ") $("file").click(); };
+drop.ondragover = e => { e.preventDefault(); drop.classList.add("over"); };
+drop.ondragleave = () => drop.classList.remove("over");
+drop.ondrop = e => { e.preventDefault(); drop.classList.remove("over"); if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); };
+$("file").onchange = e => { if (e.target.files[0]) loadFile(e.target.files[0]); };
+function loadFile(file) {
+  if (!file.type.startsWith("image/")) { setStatus("That file is not an image. Please choose a JPG, PNG or WebP photo.", "err"); return; }
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  img.onload = () => {
+    state.img = img;
+    drop.innerHTML = ""; const prev = img.cloneNode(); drop.appendChild(prev);
+    const t = document.createElement("div"); t.className = "hint"; t.textContent = file.name + " · tap to change"; drop.appendChild(t);
+    $("go").disabled = !state.det;
+    if (state.det) setStatus("Image loaded. Press Recognize.", "ok");
+  };
+  img.onerror = () => setStatus("Could not read that image. Try a different file.", "err");
+  img.src = url;
+}
+
+// ------------------------------------------------------------------ canvas helpers
+function makeCanvas(w, h) { const c = document.createElement("canvas"); c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h)); return c; }
+function imageToCanvas(img) {
+  const s = Math.min(1, MAX_SIDE / Math.max(img.naturalWidth, img.naturalHeight));
+  const c = makeCanvas(img.naturalWidth * s, img.naturalHeight * s);
+  c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); return c;
+}
+function cropCanvas(src, box, pad) {
+  const [x1, y1, x2, y2] = box; const bw = x2 - x1, bh = y2 - y1;
+  const sx = Math.max(0, x1 - pad * bw), sy = Math.max(0, y1 - pad * bh);
+  const ex = Math.min(src.width, x2 + pad * bw), ey = Math.min(src.height, y2 + pad * bh);
+  const c = makeCanvas(ex - sx, ey - sy);
+  c.getContext("2d").drawImage(src, sx, sy, ex - sx, ey - sy, 0, 0, c.width, c.height); return c;
+}
+function toCHW(canvas, size, mean, std, flip) {
+  const c = makeCanvas(size, size); const ctx = c.getContext("2d");
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(canvas, 0, 0, size, size);
+  const d = ctx.getImageData(0, 0, size, size).data; const n = size * size; const out = new Float32Array(3 * n);
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const sxp = flip ? size - 1 - x : x; const i = (y * size + sxp) * 4; const o = y * size + x;
+    for (let ch = 0; ch < 3; ch++) out[ch * n + o] = (d[i + ch] / 255 - mean[ch]) / std[ch];
+  }
+  return out;
+}
+
+// ------------------------------------------------------------------ OpenCV steps
+function cvClahe(canvas) {
+  const src = cv.imread(canvas), rgb = new cv.Mat(), lab = new cv.Mat(), ch = new cv.MatVector();
+  cv.cvtColor(src, rgb, cv.COLOR_RGBA2RGB); cv.cvtColor(rgb, lab, cv.COLOR_RGB2Lab); cv.split(lab, ch);
+  const L = ch.get(0), L2 = new cv.Mat(); const clahe = new cv.CLAHE(2.0, new cv.Size(8, 8)); clahe.apply(L, L2);
+  ch.set(0, L2); cv.merge(ch, lab); cv.cvtColor(lab, rgb, cv.COLOR_Lab2RGB);
+  const out = makeCanvas(canvas.width, canvas.height); cv.imshow(out, rgb);
+  [src, rgb, lab, L, L2].forEach(m => m.delete()); ch.delete(); clahe.delete(); return out;
+}
+function cvMeanL(canvas) {
+  const src = cv.imread(canvas), rgb = new cv.Mat(), lab = new cv.Mat();
+  cv.cvtColor(src, rgb, cv.COLOR_RGBA2RGB); cv.cvtColor(rgb, lab, cv.COLOR_RGB2Lab);
+  const m = cv.mean(lab)[0]; [src, rgb, lab].forEach(x => x.delete()); return m;
+}
+function cvClassicalROI(canvas) {
+  const enhanced = cvClahe(canvas);
+  const src = cv.imread(enhanced), gray = new cv.Mat(), blur = new cv.Mat(), edges = new cv.Mat(), dil = new cv.Mat(), closed = new cv.Mat();
+  cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY); cv.GaussianBlur(gray, blur, new cv.Size(5, 5), 0); cv.Canny(blur, edges, 50, 150);
+  const k5 = cv.Mat.ones(5, 5, cv.CV_8U), k15 = cv.Mat.ones(15, 15, cv.CV_8U);
+  cv.dilate(edges, dil, k5, new cv.Point(-1, -1), 2); cv.morphologyEx(dil, closed, cv.MORPH_CLOSE, k15);
+  const contours = new cv.MatVector(), hier = new cv.Mat();
+  cv.findContours(closed, contours, hier, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+  let box = [0, 0, canvas.width, canvas.height], best = -1, bestArea = 0;
+  for (let i = 0; i < contours.size(); i++) { const a = cv.contourArea(contours.get(i)); if (a > bestArea) { bestArea = a; best = i; } }
+  if (best >= 0) { const r = cv.boundingRect(contours.get(best));
+    if (r.width * r.height > 0.05 * canvas.width * canvas.height) box = [r.x, r.y, r.x + r.width, r.y + r.height]; }
+  const vis = cv.imread(canvas);
+  cv.drawContours(vis, contours, -1, new cv.Scalar(255, 220, 0, 255), 2);
+  cv.rectangle(vis, new cv.Point(box[0], box[1]), new cv.Point(box[2], box[3]), new cv.Scalar(255, 0, 255, 255), 3);
+  const edgeC = makeCanvas(canvas.width, canvas.height); cv.imshow(edgeC, edges);
+  const visC = makeCanvas(canvas.width, canvas.height); cv.imshow(visC, vis);
+  [src, gray, blur, edges, dil, closed, k5, k15, hier, vis].forEach(m => m.delete()); contours.delete();
+  return { box, enhanced, edgeC, visC };
+}
+function cvGradient(canvas) {
+  const src = cv.imread(canvas), gray = new cv.Mat(), gx = new cv.Mat(), gy = new cv.Mat(), mag = new cv.Mat(), out8 = new cv.Mat();
+  cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+  cv.Sobel(gray, gx, cv.CV_32F, 1, 0); cv.Sobel(gray, gy, cv.CV_32F, 0, 1); cv.magnitude(gx, gy, mag);
+  cv.normalize(mag, mag, 0, 255, cv.NORM_MINMAX); mag.convertTo(out8, cv.CV_8U);
+  const c = makeCanvas(canvas.width, canvas.height); cv.imshow(c, out8);
+  [src, gray, gx, gy, mag, out8].forEach(m => m.delete()); return c;
+}
+
+// ------------------------------------------------------------------ models
+async function detect(canvas) {
+  const r = Math.min(DET_SIZE / canvas.width, DET_SIZE / canvas.height);
+  const nw = Math.round(canvas.width * r), nh = Math.round(canvas.height * r);
+  const dw = (DET_SIZE - nw) / 2, dh = (DET_SIZE - nh) / 2;
+  const lb = makeCanvas(DET_SIZE, DET_SIZE), ctx = lb.getContext("2d");
+  ctx.fillStyle = "rgb(114,114,114)"; ctx.fillRect(0, 0, DET_SIZE, DET_SIZE);
+  ctx.drawImage(canvas, Math.round(dw - 0.1), Math.round(dh - 0.1), nw, nh);
+  const d = ctx.getImageData(0, 0, DET_SIZE, DET_SIZE).data, n = DET_SIZE * DET_SIZE, x = new Float32Array(3 * n);
+  for (let i = 0; i < n; i++) { x[i] = d[i * 4] / 255; x[n + i] = d[i * 4 + 1] / 255; x[2 * n + i] = d[i * 4 + 2] / 255; }
+  const out = await state.det.run({ [state.det.inputNames[0]]: new ort.Tensor("float32", x, [1, 3, DET_SIZE, DET_SIZE]) });
+  const t = out[state.det.outputNames[0]]; const [, C, N] = t.dims; const p = t.data;
+  const cands = [];
+  for (let i = 0; i < N; i++) {
+    let s = 0; for (let c = 4; c < C; c++) s = Math.max(s, p[c * N + i]);
+    if (s < DET_CONF) continue;
+    const cx = p[i], cy = p[N + i], w = p[2 * N + i], h = p[3 * N + i];
+    const x1 = Math.max(0, (cx - w / 2 - dw) / r), y1 = Math.max(0, (cy - h / 2 - dh) / r);
+    const x2 = Math.min(canvas.width, (cx + w / 2 - dw) / r), y2 = Math.min(canvas.height, (cy + h / 2 - dh) / r);
+    if (x2 - x1 > 4 && y2 - y1 > 4) cands.push({ box: [x1, y1, x2, y2], score: s });
+  }
+  cands.sort((a, b) => b.score - a.score);
+  const keep = [];
+  for (const c of cands) { if (keep.every(k => iou(k.box, c.box) < NMS_IOU)) keep.push(c); if (keep.length >= MAX_CARS) break; }
+  return keep;
+}
+function iou(a, b) {
+  const ix = Math.max(0, Math.min(a[2], b[2]) - Math.max(a[0], b[0])), iy = Math.max(0, Math.min(a[3], b[3]) - Math.max(a[1], b[1]));
+  const inter = ix * iy, u = (a[2] - a[0]) * (a[3] - a[1]) + (b[2] - b[0]) * (b[3] - b[1]) - inter; return u > 0 ? inter / u : 0;
+}
+function softmax(arr, off, len) {
+  let m = -Infinity; for (let i = 0; i < len; i++) m = Math.max(m, arr[off + i]);
+  const out = new Float32Array(len); let s = 0;
+  for (let i = 0; i < len; i++) { out[i] = Math.exp(arr[off + i] - m); s += out[i]; }
+  for (let i = 0; i < len; i++) out[i] /= s; return out;
+}
+async function classify(canvas, tta) {
+  const sess = state.cls[state.clsVariant], cfg = state.cfg, S = cfg.img_size, K = cfg.class_names.length;
+  const views = tta ? [false, true] : [false]; const per = 3 * S * S; const x = new Float32Array(views.length * per);
+  views.forEach((flip, i) => x.set(toCHW(canvas, S, cfg.mean, cfg.std, flip), i * per));
+  const out = await sess.run({ [sess.inputNames[0]]: new ort.Tensor("float32", x, [views.length, 3, S, S]) });
+  const logits = out[sess.outputNames[0]].data; const prob = new Float32Array(K);
+  views.forEach((_, i) => { const p = softmax(logits, i * K, K); for (let k = 0; k < K; k++) prob[k] += p[k] / views.length; });
+  return prob;
+}
+function argsortDesc(p, k) { return Array.from(p.keys()).sort((a, b) => p[b] - p[a]).slice(0, k); }
+function parseName(name) {
+  const parts = name.split(" "); const year = /^\d{4}$/.test(parts[parts.length - 1]) ? parts.pop() : "?";
+  for (const mk of MULTI_WORD_MAKES) if (name.startsWith(mk)) return [mk, parts.slice(mk.split(" ").length).join(" "), year];
+  return [parts[0], parts.slice(1).join(" "), year];
+}
+
+// ------------------------------------------------------------------ main pipeline
+$("go").onclick = run;
+async function run() {
+  if (!state.img || state.busy) return;
+  state.busy = true; $("go").disabled = true; $("go").textContent = "Working…";
+  try {
+    await ensureClassifier($("variant").value);
+    const names = state.cfg.class_names, thr = +$("thr").value, adapt = $("clahe").checked, tta = $("tta").checked;
+    const T = {}; let t0;
+    const canvas = imageToCanvas(state.img);
+    const yieldUI = () => new Promise(r => setTimeout(r, 0));
+
+    setStatus("Detecting vehicles…"); await yieldUI();
+    t0 = performance.now(); let dets = await detect(canvas); T["YOLO11n detection"] = performance.now() - t0;
+
+    let roi = null;
+    if (state.cvReady) { t0 = performance.now(); roi = cvClassicalROI(canvas); T["Classical ROI (CLAHE + Canny + contours)"] = performance.now() - t0; }
+    let fallback = false;
+    if (dets.length === 0) { dets = [{ box: roi ? roi.box : [0, 0, canvas.width, canvas.height], score: 0 }]; fallback = true; }
+
+    setStatus(`Classifying ${dets.length} vehicle${dets.length > 1 ? "s" : ""}…`); await yieldUI();
+    const results = []; t0 = performance.now();
+    for (const d of dets) {
+      let crop = cropCanvas(canvas, d.box, PAD); const L = state.cvReady ? cvMeanL(crop) : NaN; const enhanced = state.cvReady && adapt && L < DARK;
+      if (enhanced) crop = cvClahe(crop);
+      const prob = await classify(crop, tta);
+      results.push({ ...d, crop, prob, L, enhanced });
+    }
+    T[`ConvNeXt-Tiny ${state.clsVariant.toUpperCase()} (${dets.length} crop${dets.length > 1 ? "s" : ""}${tta ? ", TTA" : ""})`] = performance.now() - t0;
+
+    let dlProb = null;
+    if ($("dlonly").checked) { setStatus("Running deep-learning-only comparison…"); await yieldUI();
+      t0 = performance.now(); dlProb = await classify(canvas, false); T["DL-only (full image)"] = performance.now() - t0; }
+
+    render(canvas, results, dlProb, roi, fallback, thr, names, T);
+    const total = Object.values(T).reduce((a, b) => a + b, 0);
+    setStatus(`Done in ${fmtMs(total)}.`, "ok");
+  } catch (e) {
+    console.error(e); setStatus("Something went wrong while processing this image: " + e.message, "err");
+  } finally { state.busy = false; $("go").disabled = false; $("go").textContent = "Recognize"; }
+}
+
+function render(canvas, results, dlProb, roi, fallback, thr, names, T) {
+  // annotated image
+  const out = $("resultCanvas"); out.width = canvas.width; out.height = canvas.height;
+  const ctx = out.getContext("2d"); ctx.drawImage(canvas, 0, 0);
+  const fs = Math.max(14, Math.round(canvas.width / 45)); ctx.font = `600 ${fs}px system-ui, sans-serif`; ctx.lineWidth = Math.max(2, fs / 6);
+  results.forEach((r, i) => {
+    const k = argsortDesc(r.prob, 1)[0], conf = r.prob[k], ok = conf >= thr, [mk, md, yr] = parseName(names[k]);
+    const color = ok ? "#2ea043" : "#e3a23a"; const [x1, y1, x2, y2] = r.box;
+    ctx.strokeStyle = color; ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+    const label = `${i + 1}. ` + (ok ? `${mk} ${md} ${yr} ${Math.round(conf * 100)}%` : `Uncertain (${Math.round(conf * 100)}%)`);
+    const tw = ctx.measureText(label).width + 10, ty = Math.max(y1, fs + 8);
+    ctx.fillStyle = color; ctx.fillRect(x1, ty - fs - 8, tw, fs + 8); ctx.fillStyle = "#000"; ctx.fillText(label, x1 + 5, ty - 6);
+  });
+  $("resultEmpty").hidden = true; out.hidden = false;
+
+  // detections table
+  let h = "<tr><th>#</th><th>Make</th><th>Model</th><th>Year</th><th class='num'>Confidence</th><th class='num'>Det. conf</th><th>Status</th></tr>";
+  results.forEach((r, i) => {
+    const k = argsortDesc(r.prob, 1)[0], conf = r.prob[k], ok = conf >= thr, [mk, md, yr] = parseName(names[k]);
+    h += `<tr><td>${i + 1}</td><td>${esc(mk)}</td><td>${esc(md)}</td><td>${esc(yr)}</td><td class="num">${pct(conf)}</td>
+          <td class="num">${fallback ? "–" : r.score.toFixed(2)}</td>
+          <td>${ok ? "<span class='tag ok'>confident</span>" : "<span class='tag warn'>uncertain · see top-5</span>"}${r.enhanced ? " <span class='tag ok'>CLAHE</span>" : ""}</td></tr>`;
+  });
+  $("detTable").innerHTML = h; $("detPanel").hidden = false;
+  $("detNote").textContent = (fallback ? "No vehicle was detected, so the classical edge and contour region was used instead. " : "")
+    + `Predictions below ${Math.round(thr * 100)}% confidence are shown as Uncertain.`;
+
+  // top-5
+  const p0 = results[0].prob;
+  $("top5").innerHTML = argsortDesc(p0, 5).map(k => `<div>${esc(names[k])} <b style="float:right">${pct(p0[k])}</b>
+      <div class="track"><div class="fill" style="width:${(p0[k] * 100).toFixed(1)}%"></div></div></div>`).join("");
+  $("top5Panel").hidden = false;
+
+  // comparison
+  const kH = argsortDesc(p0, 1)[0];
+  let c = "<tr><th>Approach</th><th>Prediction (main car)</th><th class='num'>Confidence</th><th class='num'>Test-set Top-1</th></tr>";
+  c += `<tr class="row-classical"><td>Classical only</td><td>Region proposal shown below (offline SVM)</td><td class="num">–</td><td class="num">16.29%</td></tr>`;
+  if (dlProb) { const kD = argsortDesc(dlProb, 1)[0];
+    c += `<tr class="row-dl"><td>Deep learning only</td><td>${esc(names[kD])}</td><td class="num">${pct(dlProb[kD])}</td><td class="num">91.92%</td></tr>`; }
+  c += `<tr class="row-hybrid"><td><b>Hybrid</b></td><td><b>${esc(names[kH])}</b></td><td class="num"><b>${pct(p0[kH])}</b></td><td class="num"><b>94.71%</b></td></tr>`;
+  $("cmpTable").innerHTML = c; $("cmpPanel").hidden = false;
+
+  // timings
+  let t = "<tr><th>Stage</th><th class='num'>Time</th></tr>";
+  for (const [k, v] of Object.entries(T)) t += `<tr><td>${esc(k)}</td><td class="num">${fmtMs(v)}</td></tr>`;
+  t += `<tr><td><b>Total</b></td><td class="num"><b>${fmtMs(Object.values(T).reduce((a, b) => a + b, 0))}</b></td></tr>`;
+  $("timeTable").innerHTML = t; $("timePanel").hidden = false;
+
+  // gallery
+  const gal = $("gallery"); gal.innerHTML = "";
+  const add = (cv_, cap) => { const f = document.createElement("figure"); cv_.className = ""; f.appendChild(cv_);
+    const fc = document.createElement("figcaption"); fc.textContent = cap; f.appendChild(fc); gal.appendChild(f); };
+  if (roi) {
+    add(roi.enhanced, "1. CLAHE contrast enhancement (LAB L-channel)");
+    add(roi.edgeC, "2. Canny edges");
+    add(roi.visC, "3. Contours and classical ROI (magenta)");
+  }
+  add(cropCanvas(results[0].crop, [0, 0, results[0].crop.width, results[0].crop.height], 0),
+      `${roi ? "4" : "1"}. ROI crop fed to ConvNeXt` + (state.cvReady ? ` (L = ${results[0].L.toFixed(0)}${results[0].enhanced ? ", CLAHE applied" : ""})` : ""));
+  if (state.cvReady) add(cvGradient(results[0].crop), "5. Gradient magnitude (basis of HOG features)");
+  else { const n = document.createElement("p"); n.className = "hint"; n.textContent = "OpenCV.js could not load on this network, so the classical steps are hidden."; gal.appendChild(n); }
+  $("galPanel").hidden = false;
+}
+
+init();
+</script>
+</body>
+</html>
