@@ -169,6 +169,17 @@ The hybrid wins under every condition.
 2. **Same manufacturer, similar body style.** Shared design language across a brand's models (e.g. sedan vs coupe variants).
 3. **Difficult viewpoints and degraded images.** Rear or side-only views, low resolution, blur and heavy occlusion hide the distinguishing front details.
 
+
+**Unseen internet images** (14 tested on the live app; full table in [`../eval/unseen_results.md`](../eval/unseen_results.md)):
+- In-dataset cars: **6/6 correct Top-1** (5 confident, 1 rear view flagged Uncertain).
+- Out-of-dataset cars and the non-car image: **all flagged Uncertain**; no confident wrong label.
+- Mean latency 4.80 s per image in the browser.
+
+**Further failure types found on unseen images:**
+- **One car per image.** Every Stanford Cars image has exactly one labelled car, so the fine-tuned detector boxes only the main car in multi-car scenes (images 11, 12).
+- **Detector false positive on a no-car image.** It was trained with 0 background images, so a dog photo was boxed at 0.74 confidence. The classifier gave only 3.5%, so the result was correctly shown as Uncertain.
+- **Partial box on a heavily damaged, occluded car** (image 10).
+
 **Further failure types seen in the live app:**
 - **Out-of-distribution cars** (post-2012 models) are mapped to the nearest known class at low confidence. The threshold catches these as "Uncertain".
 - **Classical ROI on cluttered backgrounds:** edge-based proposals merge the car with trees and road, so the ROI covers the whole image. This is why YOLO is the primary detector and the classical ROI only a fallback.
@@ -179,6 +190,7 @@ The hybrid wins under every condition.
 - **Calibration:** confidences are moderate because of label smoothing. The 0.5 threshold was chosen from the test-set threshold analysis of this exact model.
 - **Weak conditions:** very low resolution (59% Top-1) and strong blur (75%).
 - **Browser app:** reports the classical SVM's accuracy from the offline evaluation instead of running it live. The Gradio app runs it live.
+- **Detector limits:** it boxes only one car per image and can fire on images with no car, because Stanford Cars has one car per image and no background images. The classifier's confidence gating catches the no-car case.
 - **Device dependence:** the first browser visit downloads 40–120 MB, and latency depends on the device.
 
 ## 14. Ethics and responsible use

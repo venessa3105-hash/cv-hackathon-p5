@@ -112,3 +112,18 @@ At the deployed threshold of 0.5, predictions below it are shown as "Uncertain" 
 ## 8. Failure analysis summary
 
 429 of 8,041 test images were misclassified. See `docs/failure_analysis.md` for the full analysis and examples. The main failure types are visually near-identical model years, similar body styles from the same manufacturer, and difficult viewpoints, degraded images or occlusion.
+
+## 9. Unseen internet images (live app)
+
+14 internet images not in Stanford Cars, tested on the deployed app (FP32, laptop browser). Full table: [`eval/unseen_results.md`](eval/unseen_results.md).
+
+| Group | Images | Result |
+|---|---|---|
+| Cars in the 196 classes | 6 | 6/6 correct Top-1 (5 confident, 1 rear view flagged Uncertain) |
+| Near variant (F-150 SuperCrew) | 1 | Nearest class found, flagged Uncertain |
+| Cars not in the dataset | 4 | 4/4 flagged Uncertain |
+| Multiple cars | 2 | Only the main car boxed (failure) |
+| No car (dog) | 1 | Detector false positive; classifier 3.5% → Uncertain |
+
+Mean latency **4.80 s** per image (range 4.14–5.19 s), in the browser on a laptop CPU.
+
