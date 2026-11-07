@@ -203,8 +203,6 @@ The hybrid wins under every condition.
 
 ## 15. Team contributions
 
-*(Each member to confirm their own entry.)*
-
 | Member (USN) | Responsibilities |
 |---|---|
 | 1RUA24CSE0528 | Classifier training and evaluation, overall integration |
