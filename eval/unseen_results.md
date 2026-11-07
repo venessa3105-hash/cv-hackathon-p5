@@ -43,3 +43,12 @@ None of these images are from Stanford Cars. Sources are in [`unseen_images/sour
 2. **False positive on an image with no car (15).** The detector was trained on 8,041 images with **0 background images**, so it never learned to output "no car". The confidence threshold caught it. *Fix:* add background images without cars to detector training.
 3. **Damaged or occluded car gets a partial box (10).** The crushed front end beyond the tree breaks the car's usual outline, so the box covers only the intact part.
 4. **Rear view lowers confidence (07).** The prediction was correct, but confidence fell below the threshold, because the training data is dominated by front and side views.
+
+## Screenshots from the live app
+
+| Image | Result | Analysis |
+|---|---|---|
+| 01 BMW (correct) | ![](unseen_images/screenshots/result_01_bmw_a.png) | ![](unseen_images/screenshots/result_01_bmw_b.png) |
+| 06 night Camry (hybrid beats DL-only) | ![](unseen_images/screenshots/result_06_camry_night_a.png) | ![](unseen_images/screenshots/result_06_camry_night_b.png) |
+| 13 Tesla Y (Uncertain) | ![](unseen_images/screenshots/result_13_tesla_y_a.png) | ![](unseen_images/screenshots/result_13_tesla_y_b.png) |
+| 15 dog (Uncertain) | ![](unseen_images/screenshots/result_15_dog_a.png) | ![](unseen_images/screenshots/result_15_dog_b.png) |
