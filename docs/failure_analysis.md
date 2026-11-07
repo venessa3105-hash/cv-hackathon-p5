@@ -45,7 +45,53 @@ These results indicate that incorrect predictions generally have lower confidenc
 
 ## 5. Detailed Failure Cases
 
-*Three representative failure cases will be documented here using the generated visualizations, including their actual confidence scores, visual causes and possible improvements.*
+The three cases below are taken from the test-set errors in [`failure_analysis/confusion_pairs.png`](failure_analysis/confusion_pairs.png) and [`failure_analysis/worst_errors.png`](failure_analysis/worst_errors.png). Each one is a different type of failure.
+
+### Case 1 – Performance variant mistaken for the base model (same make, different model)
+
+| True class | Predicted class | Errors | Confidence of mistake |
+|---|---|---:|---:|
+| Audi TTS Coupe 2012 | Audi TT Hatchback 2011 | 16 | up to 92% |
+| Audi S5 Coupe 2012 | Audi A5 Coupe 2012 | 11 | up to 92% |
+
+- **What happens:** the sporty version (TTS, S5) is predicted as the regular version (TT, A5) of the same car.
+- **Why:** the two share the same body shell. The differences are small trim details: badges, grille inserts, wheel design, mirror caps and quad exhaust pipes. At 384 px these details cover only a few pixels, and in side or angled views the badges are often not visible at all.
+- **How common:** this is the largest error type, **264 of 429 errors (62%)** are "same make, different model". Audi TTS Coupe 2012 (61.9% accuracy) and Audi S5 Coupe 2012 (69.0%) are among the 3 worst classes.
+- **Possible fix:** higher input resolution, or part-based attention on the grille, badges and wheels.
+
+### Case 2 – Same model, different year (facelift)
+
+| True class | Predicted class | Errors | Confidence of mistake |
+|---|---|---:|---:|
+| Dodge Caliber Wagon 2012 | Dodge Caliber Wagon 2007 | 9 | 93% |
+| Dodge Caliber Wagon 2007 | Dodge Caliber Wagon 2012 | 9 | 92% |
+| Bentley Continental GT Coupe 2012 | Bentley Continental GT Coupe 2007 | 8 | – |
+
+- **What happens:** the model gets the make and model right but picks the wrong model year. The errors go in both directions (2007 ↔ 2012), which shows the model genuinely cannot separate the two.
+- **Why:** a facelift changes only small parts: headlight shape, grille pattern, bumper details. In the worst-errors grid the 2007 Caliber is photographed **from the rear**, where the two years look almost the same.
+- **How common:** 39 errors. They are hard to avoid because the visual difference is tiny.
+- **Possible fix:** focus on the parts that change in a facelift (lights, grille), plus more training views of each year.
+
+### Case 3 – Near-identical vehicles sold under different names (different make or variant)
+
+| True class | Predicted class | Errors |
+|---|---|---:|
+| Dodge Sprinter Cargo Van 2009 | Mercedes-Benz Sprinter Van 2012 | 12 |
+| Chevrolet Express Van 2007 | Chevrolet Express Cargo Van 2007 | 11 |
+| GMC Savana Van 2012 | Chevrolet Express Van 2007 | 8 |
+
+- **What happens:** commercial vans are confused across brands and body variants.
+- **Why:** these are **rebadged versions of the same vehicle**. The Dodge Sprinter *is* a Mercedes Sprinter with a different badge, and the GMC Savana and Chevrolet Express share one body. In a side view (like the Sprinter image) the only distinguishing feature, the front badge, is not visible. Passenger vs cargo vans differ only by the side windows.
+- **How common:** 126 errors are "different make". Chevrolet Express Van 2007 is the worst class overall (48.6% accuracy).
+- **Possible fix:** treat rebadged pairs as one class or report them together, and use front-view crops when available. For these cases the **Top-5 already contains the true class**: across all errors it does so for **375 of 429 (87%)**.
+
+### Failures found on unseen internet images
+
+Testing the live app on 14 internet images (see [`../eval/unseen_results.md`](../eval/unseen_results.md)) found further failures that come from the detector rather than the classifier:
+
+- **Only one car is boxed per image**, because every Stanford Cars training image has exactly one labelled car.
+- **False detection on a photo with no car** (a dog, 0.74 confidence), because detector training had 0 background images. The classifier's low confidence (3.5%) caught it, so the result was shown as Uncertain.
+- **Partial box on a heavily damaged, occluded car.**
 
 ## 6. Possible Improvements
 
