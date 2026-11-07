@@ -1,6 +1,6 @@
 # Design Document – P5: Intelligent Fine-Grained Vehicle Recognition
 
-**Team:** T07 · **Members:** 1RUA24CSE0528, 1RUA24CSE0551, 1RUA24CSE0516, 1RUA24CSE0527
+**Team:** T88 (Tech Titans) · **Members:** 1RUA24CSE0528, 1RUA24CSE0551, 1RUA24CSE0516, 1RUA24CSE0527
 **Live app:** https://huggingface.co/spaces/vene-05/p5-vehicle-recognition · **Models:** https://huggingface.co/vene-05/p5-convnext-cars
 
 ---
@@ -126,7 +126,7 @@ Every image goes through three pipelines.
 
 ## 10. Evaluation summary
 
-Full tables are in [`../eval_P5_T07.md`](../eval_P5_T07.md).
+Full tables are in [`../eval_P5_T88.md`](../eval_P5_T88.md).
 
 | Approach | Top-1 | Top-5 |
 |---|---|---|

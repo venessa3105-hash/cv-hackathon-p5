@@ -2,7 +2,7 @@
 
 # Evaluation Results – P5: Intelligent Fine-Grained Vehicle Recognition
 
-**Team:** T07 · **Dataset:** Stanford Cars (196 classes) · **Test set:** official split, 8,041 unseen images
+**Team:** T88 (Tech Titans) · **Dataset:** Stanford Cars (196 classes) · **Test set:** official split, 8,041 unseen images
 **Train / validation split:** 7,329 / 815 (stratified 90/10 from the official 8,144 training images, seed 42; test set never used for training or model selection)
 
 ---

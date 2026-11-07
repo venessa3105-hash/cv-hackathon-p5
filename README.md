@@ -1,11 +1,11 @@
-# Intelligent Fine-Grained Vehicle Recognition (CV Hackathon 2026 · P5 · Team T07)
+# Intelligent Fine-Grained Vehicle Recognition (CV Hackathon 2026 · P5 · Team T88 · Tech Titans)
 
 Detects cars in an image and identifies their **make, model and year** across the 196 classes of the
 Stanford Cars dataset. The system is a hybrid of classical computer vision and deep learning.
 
 **Live app:** https://huggingface.co/spaces/vene-05/p5-vehicle-recognition
 **Trained models:** https://huggingface.co/vene-05/p5-convnext-cars
-**Evaluation results:** [`eval_P5_T07.md`](eval_P5_T07.md) · **Design document:** [`docs/design_document.md`](docs/design_document.md)
+**Evaluation results:** [`eval_P5_T88.md`](eval_P5_T88.md) · **Design document:** [`docs/design_document.md`](docs/design_document.md)
 
 ![Architecture](docs/architecture.png)
 
@@ -24,7 +24,7 @@ Stanford Cars dataset. The system is a hybrid of classical computer vision and d
 
 Optimization: FP16 halves model size and GPU memory with no accuracy loss. INT8 dynamic quantization
 makes the classifier 3.9× smaller (112 → 28 MB) with no accuracy loss. Full metrics, robustness,
-confidence-threshold analysis and ablations are in [`eval_P5_T07.md`](eval_P5_T07.md).
+confidence-threshold analysis and ablations are in [`eval_P5_T88.md`](eval_P5_T88.md).
 
 ## Using the app
 
@@ -56,7 +56,7 @@ eval/         eval_hybrid_optimize.py  pipeline ablation, robustness, thresholds
               unseen_images/           internet test images + sources
 docs/         architecture and deployment diagrams (.puml + .png), design document, failure analysis
 Dockerfile    builds the Gradio app from the repo root
-eval_P5_T07.md   evaluation results in the required format
+eval_P5_T88.md   evaluation results in the required format
 ```
 
 ## Reproducing the results
@@ -110,6 +110,6 @@ Models download automatically from the Hugging Face repo. No secrets are needed 
 
 See the design document for full details, ethics and the team's contributions.
 
-## Team T07
+## Team T88 · Tech Titans
 
 1RUA24CSE0528 · 1RUA24CSE0551 · 1RUA24CSE0516 · 1RUA24CSE0527
